@@ -4,7 +4,7 @@ from torch_geometric.nn import global_mean_pool, global_max_pool, global_add_poo
 from torch_geometric.nn import GINConv, GATConv, GCNConv, NNConv, MFConv, GINEConv, GATv2Conv
 
 from params import N_CHEM_NODE_FEAT, N_CHEM_EDGE_FEAT, N_PROT_NODE_FEAT, N_PROT_EDGE_FEAT, N_CHEM_ECFP
-from params import LGRAPHDTA_WITH_FP
+from params import LGRAPHDTA_WITHOUT_FP
 
 
 class FCLayers(torch.nn.Module):
@@ -230,7 +230,83 @@ class GINLayers(GIN_Layers):
                                         _node_features_len=_node_features_len, _edge_features_len=_edge_features_len,
                                         use_edges_features=False,
                                         layers_range=layers_range, n_units_list=n_units_list, **kwargs)
-        
+
+class GCNLayers(GNNLayers):
+    def __init__(self, trial, prefix, _node_features_len, layers_range=(1, 4), n_units_list=(64, 128, 256, 512, 1024,),
+                 **kwargs):
+        super(GCNLayers, self).__init__(trial, prefix + "_gcn", _node_features_len=_node_features_len)
+
+        self.get_layers(layers_range=layers_range, n_units_list=n_units_list)
+
+    def get_layers(self, layers_range, n_units_list):
+        _n_out = None
+        _n_in = self._node_features_len
+
+        use_activation = self.trial.suggest_categorical(self.prefix + "_use_activation", (True, False))
+        if use_activation:
+            activation_name = self.trial.suggest_categorical(self.prefix + "_activation",
+                                                             ("ReLU", "LeakyReLU", "Sigmoid"))
+            self.activation = getattr(torch.nn, activation_name)()
+
+        use_bn = self.trial.suggest_categorical(self.prefix + "_use_bn", (True, False))
+        _n_layers = self.trial.suggest_int(self.prefix + "_n_layers", layers_range[0], layers_range[1])
+        _layers_list = []
+        _bn_layers_list = []
+
+        for i in range(_n_layers):
+            _n_out = self.trial.suggest_categorical(self.prefix + f"_n_out_{i}", n_units_list)
+
+            _gnn = GCNConv(_n_in, _n_out)
+            _layers_list.append(_gnn)
+
+            if use_bn:
+                bn = nn.BatchNorm1d(_n_out)
+                _bn_layers_list.append(bn)
+
+            _n_in = _n_out
+
+        self.n_out = _n_out
+        self.layers_list = nn.ModuleList(_layers_list)
+        self.bn_list = nn.ModuleList(_bn_layers_list) if use_bn else [None] * _n_layers
+
+class GMFLayers(GNNLayers):
+    def __init__(self, trial, prefix, _node_features_len, layers_range=(1, 4), n_units_list=(64, 128, 256, 512, 1024,),
+                 **kwargs):
+        super(GMFLayers, self).__init__(trial, prefix + "_gmf", _node_features_len=_node_features_len)
+
+        self.get_layers(layers_range=layers_range, n_units_list=n_units_list)
+
+    def get_layers(self, layers_range, n_units_list):
+        _n_out = None
+        _n_in = self._node_features_len
+
+        use_activation = self.trial.suggest_categorical(self.prefix + "_use_activation", (True, False))
+        if use_activation:
+            activation_name = self.trial.suggest_categorical(self.prefix + "_activation",
+                                                             ("ReLU", "LeakyReLU", "Sigmoid"))
+            self.activation = getattr(torch.nn, activation_name)()
+
+        use_bn = self.trial.suggest_categorical(self.prefix + "_use_bn", (True, False))
+        _n_layers = self.trial.suggest_int(self.prefix + "_n_layers", layers_range[0], layers_range[1])
+        _layers_list = []
+        _bn_layers_list = []
+
+        for i in range(_n_layers):
+            _n_out = self.trial.suggest_categorical(self.prefix + f"_n_out_{i}", n_units_list)
+
+            _gnn = MFConv(_n_in, _n_out)
+            _layers_list.append(_gnn)
+
+            if use_bn:
+                bn = nn.BatchNorm1d(_n_out)
+                _bn_layers_list.append(bn)
+
+            _n_in = _n_out
+
+        self.n_out = _n_out
+        self.layers_list = nn.ModuleList(_layers_list)
+        self.bn_list = nn.ModuleList(_bn_layers_list) if use_bn else [None] * _n_layers
+
 class Node_Attr_Mixer(nn.Module):
     def __init__(self, node_attr_3DProDTA_dim, node_attr_Language_dim):
         super(Node_Attr_Mixer, self).__init__()
@@ -280,7 +356,7 @@ class GraphModel(torch.nn.Module):
         prefix = prefix + "_" + self._gnn_arch
 
         if self._gnn_arch == "single":
-            graph_models = ["GATv2Layers", "GINLayers"]
+            graph_models = ["GATv2Layers", "GINLayers", "GCNLayers", "GMFLayers"]
 
             _graph_model_type = trial.suggest_categorical(prefix+"_graph_model_type", graph_models)
             self._graph_model = eval(_graph_model_type)(trial, prefix, _node_features_len=_node_features_len,
@@ -309,6 +385,88 @@ class GraphModel(torch.nn.Module):
 
         return x
 
+class GatingMechanism(nn.Module):
+    def __init__(self, chem_ecfp_dim, chem_graph_dim, prot_graph_dim):
+        super(GatingMechanism, self).__init__()
+
+        self.gate_chem_ecfp = torch.nn.Sequential(
+            torch.nn.Linear(chem_ecfp_dim, chem_ecfp_dim//2),
+            torch.nn.ReLU(),
+            torch.nn.Linear(chem_ecfp_dim//2, chem_ecfp_dim//2),
+            torch.nn.ReLU(),
+            torch.nn.Linear(chem_ecfp_dim//2, chem_ecfp_dim//4),
+            torch.nn.ReLU(),
+            torch.nn.Linear(chem_ecfp_dim//4, chem_ecfp_dim//4),
+            torch.nn.ReLU(),
+            torch.nn.Linear(chem_ecfp_dim//4, chem_ecfp_dim//8),
+            torch.nn.ReLU(),
+            torch.nn.Linear(chem_ecfp_dim//8, 1),
+            torch.nn.Sigmoid(),
+        )
+
+        self.gate_chem_graph = torch.nn.Sequential(
+            torch.nn.Linear(chem_graph_dim, chem_graph_dim//2),
+            torch.nn.ReLU(),
+            torch.nn.Linear(chem_graph_dim//2, chem_graph_dim//2),
+            torch.nn.ReLU(),
+            torch.nn.Linear(chem_graph_dim//2, chem_graph_dim//4),
+            torch.nn.ReLU(),
+            torch.nn.Linear(chem_graph_dim//4, chem_graph_dim//4),
+            torch.nn.ReLU(),
+            torch.nn.Linear(chem_graph_dim//4, chem_graph_dim//8),
+            torch.nn.ReLU(),
+            torch.nn.Linear(chem_graph_dim//8, 1),
+            torch.nn.Sigmoid(),
+        )
+
+        self.gate_prot_graph = torch.nn.Sequential(
+            torch.nn.Linear(prot_graph_dim, prot_graph_dim//2),
+            torch.nn.ReLU(),
+            torch.nn.Linear(prot_graph_dim//2, prot_graph_dim//2),
+            torch.nn.ReLU(),
+            torch.nn.Linear(prot_graph_dim//2, prot_graph_dim//4),
+            torch.nn.ReLU(),
+            torch.nn.Linear(prot_graph_dim//4, prot_graph_dim//4),
+            torch.nn.ReLU(),
+            torch.nn.Linear(prot_graph_dim//4, prot_graph_dim//8),
+            torch.nn.ReLU(),
+            torch.nn.Linear(prot_graph_dim//8, 1),
+            torch.nn.Sigmoid(),
+        )
+    
+    def forward(self, chem_ecfp, chem_graph, prot_graph):
+        gate_chem_ecfp = self.gate_chem_ecfp(chem_ecfp)
+        gate_chem_graph = self.gate_chem_graph(chem_graph)
+        gate_prot_graph = self.gate_prot_graph(prot_graph)
+
+        return gate_chem_ecfp, gate_chem_graph, gate_prot_graph
+
+class TransformerFusion(nn.Module):
+    def __init__(self, embedding_dim=2187, hidden_dim=729, num_heads=9, num_layers=6):
+        super(TransformerFusion, self).__init__()
+        self.ligand_fp_fc = nn.Linear(256, embedding_dim//3)
+        self.ligand_graph_fc = nn.Linear(1024, embedding_dim//3)
+        self.protein_graph_fc = nn.Linear(1024, embedding_dim//3)
+
+        # Transformer Encoder
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=embedding_dim, nhead=num_heads, dim_feedforward=hidden_dim)
+        self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=num_layers)
+
+        self.n_out = embedding_dim
+
+    def forward(self, ligand_fp, ligand_graph, protein_graph):
+        ligand_fp = self.ligand_fp_fc(ligand_fp)
+        ligand_graph = self.ligand_graph_fc(ligand_graph)
+        protein_graph = self.protein_graph_fc(protein_graph)
+
+        x = torch.cat([ligand_fp, ligand_graph, protein_graph], dim=-1)
+
+        x = x.unsqueeze(0)
+        x = self.transformer_encoder(x)
+
+        return x.squeeze(0)
+
+
 
 class LGraph(torch.nn.Module):
     def __init__(self, trial, chem_node_features_len=N_CHEM_NODE_FEAT, prot_node_features_len=N_PROT_NODE_FEAT,
@@ -319,18 +477,27 @@ class LGraph(torch.nn.Module):
 
         self.use_chem_ecfp_post_fc = trial.suggest_categorical("chem_ecfp_post_fc", (True,))
         chem_ecfp_n_out = chem_ecfp_len
-        if self.use_chem_ecfp_post_fc and LGRAPHDTA_WITH_FP:
+        if self.use_chem_ecfp_post_fc and not LGRAPHDTA_WITHOUT_FP:
             self.chem_ecfp_post_fc = FCLayers(trial, "chem_ecfp_post", chem_ecfp_n_out, layers_range=(1, 1),
                                               n_units_list=(256, 512, 1024, 2048))
             chem_ecfp_n_out = self.chem_ecfp_post_fc.n_out
 
         self.protein_node_attr_mixer = Node_Attr_Mixer(41, 1280)
+        # self.protein_node_attr_mixer = Node_Attr_Mixer(41, 1536)
 
         self.chem_graph_encoder = GraphModel(trial, "chem", 23, chem_edge_features_len)
         self.prot_graph_encoder = GraphModel(trial, "prot", 82, prot_edge_features_len)
 
-        if LGRAPHDTA_WITH_FP:
+        # # Add GatingMechanism
+        # self.gating_mechanism = GatingMechanism(chem_ecfp_n_out, self.chem_graph_encoder.n_out, self.prot_graph_encoder.n_out)
+
+        # Add TransformerFusion
+        # self.transformer_fusion = TransformerFusion(embedding_dim=2187, hidden_dim=729, num_heads=9, num_layers=6)
+
+        if not LGRAPHDTA_WITHOUT_FP:
             n_out = chem_ecfp_n_out + self.chem_graph_encoder.n_out + self.prot_graph_encoder.n_out
+            # Add TransformerFusion
+            # n_out = self.transformer_fusion.n_out
         else:
             n_out = self.chem_graph_encoder.n_out + self.prot_graph_encoder.n_out
 
@@ -341,7 +508,7 @@ class LGraph(torch.nn.Module):
         chem_ecfp, chem_graph, prot_graph = data["e1_fp"], data["e1_graph"], data["e2_graph"]
 
         chem_ecfp_out = chem_ecfp
-        if self.use_chem_ecfp_post_fc and LGRAPHDTA_WITH_FP:
+        if self.use_chem_ecfp_post_fc and not LGRAPHDTA_WITHOUT_FP:
             chem_ecfp_out = self.chem_ecfp_post_fc(chem_ecfp_out)
 
         prot_graph.x = self.protein_node_attr_mixer(prot_graph.x)
@@ -349,8 +516,16 @@ class LGraph(torch.nn.Module):
         chem_graph_out = self.chem_graph_encoder(chem_graph)
         prot_graph_out = self.prot_graph_encoder(prot_graph)
 
-        if LGRAPHDTA_WITH_FP:
+        # # Add GatingMechanism
+        # gate_chem_ecfp, gate_chem_graph, gate_prot_graph = self.gating_mechanism(chem_ecfp_out, chem_graph_out, prot_graph_out)
+        # chem_ecfp_out = chem_ecfp_out * gate_chem_ecfp
+        # chem_graph_out = chem_graph_out * gate_chem_graph
+        # prot_graph_out = prot_graph_out * gate_prot_graph
+
+        if not LGRAPHDTA_WITHOUT_FP:
             x = torch.cat([chem_ecfp_out, chem_graph_out, prot_graph_out], dim=1)
+            # Add TransformerFusion
+            # x = self.transformer_fusion(chem_ecfp_out, chem_graph_out, prot_graph_out)
         else:
             x = torch.cat([chem_graph_out, prot_graph_out], dim=1)
         x = self.out(self.fc(x))

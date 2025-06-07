@@ -57,6 +57,7 @@ def train_val(model, optimizer, criterion, train_dl, val_dl, epochs, score_fn, f
 
         y_true_val, y_pred_val, loss_val = val(model, val_dl, criterion)
 
+
         metrics_train = score_fn(y_true_train, y_pred_train)
         metrics_val = score_fn(y_true_val, y_pred_val, with_rm2=with_rm2, with_ci=with_ci)
 
@@ -76,6 +77,7 @@ def train_val(model, optimizer, criterion, train_dl, val_dl, epochs, score_fn, f
             logger.info("Validation | " +
                         str({k: round(v, 3) for k, v in epoch_to_metrics[epoch]["metrics_val"].items()}) +
                         " | loss: " + str(round(epoch_to_metrics[epoch]["loss_val"], 3)))
+            
 
     return epoch_to_metrics
 
