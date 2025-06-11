@@ -1,0 +1,7 @@
+optuna==3.0.3
+numpy>=1.21.0
+pandas>=1.2.4
+scipy>=1.8.1
+scikit-learn>=0.24.2
+gdown==5.2.0
+tqdm
