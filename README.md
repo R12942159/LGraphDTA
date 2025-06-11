@@ -13,11 +13,11 @@ LGraphDTA integrates large language models and graph neural networks for accurat
 - bash download_dataset.sh
 
 ## Usage & Ablation Study
-### Train the model
+### Train & Test the model
 - **To train the LGraphDTA model on the Davis dataset, run:** <br>
-    python train.py --dataset davis
+    python test.py --dataset davis
 - **To train the LGraphDTA model on the Kiba dataset, run:** <br>
-    python train.py --dataset kiba
+    python test.py --dataset kiba
 
 ### Reproduce Ablation Studies
 To reproduce each ablation setting, edit the following flags in `params.py` accordingly.
