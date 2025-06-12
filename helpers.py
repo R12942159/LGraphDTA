@@ -7,7 +7,7 @@ import numpy as np
 
 from utils import logger, GraphPairsBatchConstructor, load_pkl
 from params import N_CHEM_NODE_FEAT, N_CHEM_EDGE_FEAT, N_PROT_EDGE_FEAT, N_PROT_NODE_FEAT
-from params import LGRAPHDTA, LGRAPHDTA_WITHOUT_ESM2, LGRAPHDTA_WITHOUT_FEATURE, COLD_SETTING, LGRAPHDTA_RANDOM_EMBEDDING, LGRAPHDTA_LLAMA_EMBEDDING
+from params import LGRAPHDTA, LGRAPHDTA_WITHOUT_ESM2, LGRAPHDTA_WITHOUT_DOMAIN, COLD_SETTING, LGRAPHDTA_RANDOM_EMBEDDING, LGRAPHDTA_LLAMA_EMBEDDING
 
 
 class CustomTrial:
@@ -101,7 +101,7 @@ def load_data(dataset):
         protein_to_graph = load_pkl(f"data/{dataset}/protein_to_graph_41_1280.pkl")
     if LGRAPHDTA_WITHOUT_ESM2:
         protein_to_graph = load_pkl(f"data/{dataset}/protein_to_graph.pkl")  
-    if LGRAPHDTA_WITHOUT_FEATURE:
+    if LGRAPHDTA_WITHOUT_DOMAIN:
         protein_to_graph = load_pkl(f"data/{dataset}/protein_to_graph_0_1280.pkl")
     if LGRAPHDTA_RANDOM_EMBEDDING:
         protein_to_graph = load_pkl(f"data/{dataset}/protein_to_graph_41_rd1280.pkl")

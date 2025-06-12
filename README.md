@@ -13,7 +13,14 @@ LGraphDTA integrates large language models and graph neural networks for accurat
 - bash download_dataset.sh
 
 ## Usage & Ablation Study
-### Train & Test the model
+### Train & Test the model with 5-fold cross validation
+- **To train the LGraphDTA model on the Davis dataset, run:** <br>
+    python test.py --dataset davis
+- **To train the LGraphDTA model on the Kiba dataset, run:** <br>
+    python test.py --dataset kiba
+
+### Train & Test the model with 1-fold cross validation
+Before running the script, make sure to open params.py and set the COMBINED_TRAINING_SET parameter to True.
 - **To train the LGraphDTA model on the Davis dataset, run:** <br>
     python test.py --dataset davis
 - **To train the LGraphDTA model on the Kiba dataset, run:** <br>
@@ -22,10 +29,10 @@ LGraphDTA integrates large language models and graph neural networks for accurat
 ### Reproduce Ablation Studies
 To reproduce each ablation setting, edit the following flags in `params.py` accordingly.
 
-| Ablation Experiment                     | Flag in `params.py`             | Set To  |
-|-----------------------------------------|---------------------------------|---------|
-| LGraphDTA w/o Fingerprint               | `LGRAPHDTA_WITHOUT_FP`          | `True`  |
-| LGraphDTA w/o ESM2                      | `LGRAPHDTA_WITHOUT_ESM2`        | `True`  |
-| LGraphDTA w/o Domain                    | `LGRAPHDTA_WITHOUT_FEATURE`     | `True`  |
-| Replace ESM2 with random embeddings     | `LGRAPHDTA_RANDOM_EMBEDDING`    | `True`  |
-| Replace ESM2 with LLM embeddings        | `LGRAPHDTA_LLAMA_EMBEDDING`     | `True`  |
+| Ablation Experiment                | Flag in `params.py`                            | Set To         |
+|------------------------------------|------------------------------------------------|----------------|
+| LGraphDTA w/o ESM2                 |`LGRAPHDTA_WITHOUT_ESM2` & `N_PROT_NODE_FEAT`   | `True` & `41`  |
+| LGraphDTA w/o Domain               |`LGRAPHDTA_WITHOUT_FEATURE` & `N_PROT_NODE_FEAT`| `True` & `1280`|
+| LGraphDTA w/o Fingerprint          |`LGRAPHDTA_WITHOUT_FP`                          | `True`         |
+| Replace ESM2 with random embeddings|`LGRAPHDTA_RANDOM_EMBEDDING`                    | `True`         |
+| Replace ESM2 with LLM embeddings   |`LGRAPHDTA_LLAMA_EMBEDDING` & `N_PROT_NODE_FEAT`| `True` & `1577`|

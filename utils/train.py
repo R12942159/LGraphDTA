@@ -1,5 +1,4 @@
-import torch
-
+import torch, os
 from .general import logger
 
 
@@ -42,10 +41,11 @@ def val(model, data_loader, criterion):
 
 
 def train_val(model, optimizer, criterion, train_dl, val_dl, epochs, score_fn, fold=None, verbose=False,
-              with_rm2=False, with_ci=False, val_nth_epoch=10):
+              with_rm2=False, with_ci=False, val_nth_epoch=10, save_ckpt_path=None):
     torch.cuda.empty_cache()
 
     epoch_to_metrics = {}
+    best_val_loss = float('inf')
 
     for epoch in range(epochs):
         epoch += 1
@@ -77,7 +77,14 @@ def train_val(model, optimizer, criterion, train_dl, val_dl, epochs, score_fn, f
             logger.info("Validation | " +
                         str({k: round(v, 3) for k, v in epoch_to_metrics[epoch]["metrics_val"].items()}) +
                         " | loss: " + str(round(epoch_to_metrics[epoch]["loss_val"], 3)))
-            
+
+        if save_ckpt_path and loss_val < best_val_loss:
+            best_val_loss = loss_val
+            os.makedirs(os.path.dirname(save_ckpt_path), exist_ok=True)
+            torch.save(model.state_dict(), save_ckpt_path)
+            if verbose:
+                logger.info(f"Saved new best model at epoch {epoch} with val_loss: {loss_val:.4f} to {save_ckpt_path}")
+           
 
     return epoch_to_metrics
 

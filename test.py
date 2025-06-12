@@ -1,17 +1,14 @@
 import copy
 import os
-
 import torch
 import numpy as np
-
 from utils import logger, train_val, get_metrics_reg, save_pkl
 from params import SEED, DEVICE, HP, BATCH_SIZE, LR, EPOCH, COMBINED_TRAINING_SET
 from helpers import CustomTrial, CustomDataLoader, load_data
 from models import LGraph
 
-
 import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.filterwarnings("ignore")
 
 if torch.cuda.is_available():
     logger.info(f"GPU will be used for training ({torch.cuda.get_device_name()})")
@@ -20,7 +17,7 @@ else:
     logger.info("CPUs will be used for training")
 
 
-def run_dataset_test(dataset, model, folds):
+def run_dataset_test(dataset, model, folds, ckpt_path=None):
     epochs = EPOCH
     df_train_val, df_test, val_folds, test_fold, protein_to_graph, ligand_to_graph, ligand_to_ecfp = load_data(dataset)
 
@@ -34,7 +31,7 @@ def run_dataset_test(dataset, model, folds):
         else:
             df_train = df_train_val[~ df_train_val.index.isin(idx_val)]
 
-        test_dl = CustomDataLoader(df=df_test, batch_size=BATCH_SIZE, device=DEVICE, # original batch_size: 32
+        val_dl = CustomDataLoader(df=df_test, batch_size=BATCH_SIZE, device=DEVICE, # original batch_size: 32
                                    e1_key_to_graph=ligand_to_graph,
                                    e2_key_to_graph=protein_to_graph,
                                    e1_key_to_fp=ligand_to_ecfp,
@@ -49,11 +46,12 @@ def run_dataset_test(dataset, model, folds):
         optimizer = torch.optim.Adam(model_copy.parameters(), lr=LR)
         criterion = torch.nn.MSELoss()
         epoch_to_metrics = train_val(model=model_copy, optimizer=optimizer, criterion=criterion,
-                                     train_dl=train_dl, val_dl=test_dl, epochs=epochs,
+                                     train_dl=train_dl, val_dl=val_dl, epochs=epochs,
                                      score_fn=get_metrics_reg, fold=fold, verbose=True, 
-                                     with_rm2=True, with_ci=True, val_nth_epoch=1)
+                                     with_rm2=True, with_ci=True, val_nth_epoch=1,
+                                     save_ckpt_path=f"ckpt/{dataset}_fold{fold}.ckpt")
 
-        save_pkl(epoch_to_metrics, f"results/prot_graph-chem_graph_ecfp-{dataset}-fold_{fold}.pkl")
+        save_pkl(epoch_to_metrics, f"results/{dataset}-fold_{fold}.pkl")
 
 
 def main(folds, datasets):

@@ -4,7 +4,7 @@ from torch_geometric.nn import global_mean_pool, global_max_pool, global_add_poo
 from torch_geometric.nn import GINConv, GATConv, GCNConv, NNConv, MFConv, GINEConv, GATv2Conv
 
 from params import N_CHEM_NODE_FEAT, N_CHEM_EDGE_FEAT, N_PROT_NODE_FEAT, N_PROT_EDGE_FEAT, N_CHEM_ECFP
-from params import LGRAPHDTA_WITHOUT_FP
+from params import LGRAPHDTA_WITHOUT_FP, LGRAPHDTA_WITHOUT_DOMAIN, LGRAPHDTA_WITHOUT_ESM2, LGRAPHDTA_LLAMA_EMBEDDING
 
 
 class FCLayers(torch.nn.Module):
@@ -345,7 +345,6 @@ class Reduce_Node_Attribute_Dimensions(nn.Module):
 class Graph:
     pass
 
-
 class GraphModel(torch.nn.Module):
     def __init__(self, trial, prefix, _node_features_len, _edge_features_len):
         super(GraphModel, self).__init__()
@@ -467,7 +466,6 @@ class TransformerFusion(nn.Module):
         return x.squeeze(0)
 
 
-
 class LGraph(torch.nn.Module):
     def __init__(self, trial, chem_node_features_len=N_CHEM_NODE_FEAT, prot_node_features_len=N_PROT_NODE_FEAT,
                  chem_edge_features_len=N_CHEM_EDGE_FEAT, prot_edge_features_len=N_PROT_EDGE_FEAT,
@@ -482,11 +480,19 @@ class LGraph(torch.nn.Module):
                                               n_units_list=(256, 512, 1024, 2048))
             chem_ecfp_n_out = self.chem_ecfp_post_fc.n_out
 
-        self.protein_node_attr_mixer = Node_Attr_Mixer(41, 1280)
-        # self.protein_node_attr_mixer = Node_Attr_Mixer(41, 1536)
+        if LGRAPHDTA_WITHOUT_ESM2:
+            prot_node_features_len = 41
+        elif LGRAPHDTA_WITHOUT_DOMAIN:
+            prot_node_features_len = 1280
+        elif LGRAPHDTA_LLAMA_EMBEDDING:
+            self.protein_node_attr_mixer = Node_Attr_Mixer(41, 1536)
+            prot_node_features_len = 41 + 41
+        else:
+            self.protein_node_attr_mixer = Node_Attr_Mixer(41, 1280)
+            prot_node_features_len = 41 + 41
 
         self.chem_graph_encoder = GraphModel(trial, "chem", 23, chem_edge_features_len)
-        self.prot_graph_encoder = GraphModel(trial, "prot", 82, prot_edge_features_len)
+        self.prot_graph_encoder = GraphModel(trial, "prot", prot_node_features_len, prot_edge_features_len)
 
         # # Add GatingMechanism
         # self.gating_mechanism = GatingMechanism(chem_ecfp_n_out, self.chem_graph_encoder.n_out, self.prot_graph_encoder.n_out)
@@ -511,7 +517,10 @@ class LGraph(torch.nn.Module):
         if self.use_chem_ecfp_post_fc and not LGRAPHDTA_WITHOUT_FP:
             chem_ecfp_out = self.chem_ecfp_post_fc(chem_ecfp_out)
 
-        prot_graph.x = self.protein_node_attr_mixer(prot_graph.x)
+        if LGRAPHDTA_WITHOUT_ESM2 or LGRAPHDTA_WITHOUT_DOMAIN:
+            pass
+        else:
+            prot_graph.x = self.protein_node_attr_mixer(prot_graph.x)
 
         chem_graph_out = self.chem_graph_encoder(chem_graph)
         prot_graph_out = self.prot_graph_encoder(prot_graph)

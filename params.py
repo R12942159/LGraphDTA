@@ -1,6 +1,6 @@
 import torch
 
-N_CHEM_NODE_FEAT = 23
+N_CHEM_NODE_FEAT = 23 # 23
 N_PROT_NODE_FEAT = 1321 # 1321
 N_CHEM_EDGE_FEAT = 6
 N_PROT_EDGE_FEAT = 10
@@ -9,12 +9,12 @@ BATCH_SIZE = 128
 LR = 0.0001
 EPOCH = 1000
 
-COMBINED_TRAINING_SET = False
+LGRAPHDTA = True # Main experiment (5-fold cross-validation)
+COMBINED_TRAINING_SET = False  # 1-fold eexperiment
 
-LGRAPHDTA = True # Main experiment
-LGRAPHDTA_WITHOUT_FP = False # Ablation study (False mean with FP)
 LGRAPHDTA_WITHOUT_ESM2 = False # Ablation study
-LGRAPHDTA_WITHOUT_FEATURE = False # Ablation study
+LGRAPHDTA_WITHOUT_DOMAIN = False # Ablation study
+LGRAPHDTA_WITHOUT_FP = False # Ablation study (False mean with FP)
 LGRAPHDTA_RANDOM_EMBEDDING = False # Random embedding experiment
 LGRAPHDTA_LLAMA_EMBEDDING = False # Llama embedding experiment
 
