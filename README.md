@@ -7,6 +7,7 @@ LGraphDTA integrates large language models and graph neural networks for accurat
 
 ### Install dependencies
 - git clone https://github.com/R12942159/LGraphDTA.git
+- cd LGraphDTA
 - pip install -r requirements.txt
 
 ### Download datasets
