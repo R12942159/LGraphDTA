@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Downloading LGraphDTA_dataset.zip..."
-gdown --id 1c1s9PrWr_FW_D0k-SF-goDx5p1BUNaXl -O LGraphDTA_dataset.zip
+gdown --id 1uMWAiq9sxZIQ9Ro0M5bxIi1Zbgex6izw -O LGraphDTA_dataset.zip
 
 echo "Unzipping LGraphDTA_dataset.zip..."
 unzip -o LGraphDTA_dataset.zip
