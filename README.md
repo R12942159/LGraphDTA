@@ -3,12 +3,17 @@ LGraphDTA integrates large language models and graph neural networks for accurat
 
 ## Installation
 ### Prerequisites
-- Python 3.11.7
+- Python 3.8.20
+- NVIDIA Driver with CUDA 12.2 support (e.g., Driver Version 535.183.01)
 
 ### Install dependencies
 - git clone https://github.com/R12942159/LGraphDTA.git
 - cd LGraphDTA
 - pip install -r requirements.txt
+
+### For CUDA 12.2 environment, install PyTorch with CUDA 11.3 support as PyTorch currently does not support CUDA 12 directly:
+pip uninstall -y torch torchvision
+pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 -f https://download.pytorch.org/whl/torch_stable.html
 
 ### Download datasets
 - bash download_dataset.sh

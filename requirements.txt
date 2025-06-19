@@ -1,7 +1,14 @@
+scipy==1.8.1
 optuna==3.0.3
-numpy>=1.21.0
+PyYAML==6.0.2
+tqdm==4.67.1
+torch==1.12.1
+transformers==4.31.0
+bertviz==1.4.0
+pytorch-lightning==1.8.6
+future==0.18.3
+requires
+numpy==1.24.4
 pandas>=1.2.4
-scipy>=1.8.1
 scikit-learn>=0.24.2
 gdown==5.2.0
-tqdm
