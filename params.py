@@ -10,14 +10,13 @@ LR = 0.0001
 EPOCH = 1000
 
 LGRAPHDTA = True # Main experiment (5-fold cross-validation)
-COMBINED_TRAINING_SET = False  # 1-fold eexperiment
+COMBINED_TRAINING_SET = False  # 1-fold experiment
 
 LGRAPHDTA_WITHOUT_ESM2 = False # Ablation study
 LGRAPHDTA_WITHOUT_DOMAIN = False # Ablation study
 LGRAPHDTA_WITHOUT_FP = False # Ablation study (False mean with FP)
 LGRAPHDTA_RANDOM_EMBEDDING = False # Random embedding experiment
 LGRAPHDTA_LLAMA_EMBEDDING = False # Llama embedding experiment
-
 
 COLD_SETTING = False # Cold start experiment
 

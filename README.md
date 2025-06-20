@@ -15,8 +15,14 @@ LGraphDTA integrates large language models and graph neural networks for accurat
 pip uninstall -y torch torchvision
 pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 -f https://download.pytorch.org/whl/torch_stable.html
 
-### Download datasets
-- bash download_dataset.sh
+### Download datasets and checkpoints
+** To download both the datasets and pretrained checkpoints, run the following command:** <br>
+    bash download_dataset.sh
+
+This script will:
+- Download the LGraphDTA datasets and unzip them.
+- Download the pretrained checkpoint files (ckpt-LGraphDTA.zip) and unzip them
+- Remove the downloaded zip files after extraction
 
 ## Usage & Ablation Study
 ### Train & Test the model with 5-fold cross validation
