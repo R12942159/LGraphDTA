@@ -12,8 +12,8 @@ LGraphDTA integrates large language models and graph neural networks for accurat
 - pip install -r requirements.txt
 
 ### For CUDA 12.2 environment, install PyTorch with CUDA 11.3 support as PyTorch currently does not support CUDA 12 directly:
-pip uninstall -y torch torchvision \\
-pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 -f https://download.pytorch.org/whl/torch_stable.html
+pip uninstall -y torch torchvision \
+&& pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 -f https://download.pytorch.org/whl/torch_stable.html
 
 ### Download datasets and checkpoints
 ** To download both the datasets and pretrained checkpoints, run the following command:** <br>
