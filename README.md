@@ -73,6 +73,9 @@ If you have downloaded the pretrained checkpoints in `ckpt-LGraphDTA/5-fold/`, y
     → results saved to: results/kiba_fold0.pkl  
   - To compute KIBA bootstrap STD: Move `kiba_fold0.pkl` to the `bootstrap/` folder <br>
 
+- **To compute bootstrap STD:** 
+  - python3 bootstrap/bootstrap.py
+
 ### Train & Test the model with 5-fold cross validation
 - **To train the LGraphDTA model on the Davis dataset, run:** <br>
     python test.py --dataset davis
