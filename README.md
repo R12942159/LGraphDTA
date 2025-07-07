@@ -30,16 +30,16 @@ If you have downloaded the pretrained checkpoints in `ckpt-LGraphDTA/5-fold/`, y
 
 - **To test on the Davis dataset:**  
   - Fold 0: <br>
-    python3 test.py --datasets davis --folds 4 --checkpoint_path ckpt-LGraphDTA/5-fold/davis_fold0.ckpt <br>
+    python3 test.py --datasets davis --folds 0 --checkpoint_path ckpt-LGraphDTA/5-fold/davis_fold0.ckpt <br>
     → results saved to: results/davis_fold0.pkl  
   - Fold 1: <br>
-    python3 test.py --datasets davis --folds 4 --checkpoint_path ckpt-LGraphDTA/5-fold/davis_fold1.ckpt <br>
+    python3 test.py --datasets davis --folds 1 --checkpoint_path ckpt-LGraphDTA/5-fold/davis_fold1.ckpt <br>
     → results saved to: results/davis_fold1.pkl  
   - Fold 2: <br>
-    python3 test.py --datasets davis --folds 4 --checkpoint_path ckpt-LGraphDTA/5-fold/davis_fold2.ckpt <br>
+    python3 test.py --datasets davis --folds 2 --checkpoint_path ckpt-LGraphDTA/5-fold/davis_fold2.ckpt <br>
     → results saved to: results/davis_fold2.pkl  
   - Fold 3: <br>
-    python3 test.py --datasets davis --folds 4 --checkpoint_path ckpt-LGraphDTA/5-fold/davis_fold3.ckpt <br>
+    python3 test.py --datasets davis --folds 3 --checkpoint_path ckpt-LGraphDTA/5-fold/davis_fold3.ckpt <br>
     → results saved to: results/davis_fold3.pkl  
   - Fold 4: <br>
     python3 test.py --datasets davis --folds 4 --checkpoint_path ckpt-LGraphDTA/5-fold/davis_fold4.ckpt <br>
@@ -47,16 +47,16 @@ If you have downloaded the pretrained checkpoints in `ckpt-LGraphDTA/5-fold/`, y
 
 - **To test on the KIBA dataset:**  
   - Fold 0: <br>
-    python3 test.py --datasets kiba --folds 4 --checkpoint_path ckpt-LGraphDTA/5-fold/kiba_fold0.ckpt <br>
+    python3 test.py --datasets kiba --folds 0 --checkpoint_path ckpt-LGraphDTA/5-fold/kiba_fold0.ckpt <br>
     → results saved to: results/kiba_fold0.pkl  
   - Fold 1: <br>
-    python3 test.py --datasets kiba --folds 4 --checkpoint_path ckpt-LGraphDTA/5-fold/kiba_fold1.ckpt <br>
+    python3 test.py --datasets kiba --folds 1 --checkpoint_path ckpt-LGraphDTA/5-fold/kiba_fold1.ckpt <br>
     → results saved to: results/kiba_fold1.pkl  
   - Fold 2: <br>
-    python3 test.py --datasets kiba --folds 4 --checkpoint_path ckpt-LGraphDTA/5-fold/kiba_fold2.ckpt <br>
+    python3 test.py --datasets kiba --folds 2 --checkpoint_path ckpt-LGraphDTA/5-fold/kiba_fold2.ckpt <br>
     → results saved to: results/kiba_fold2.pkl  
   - Fold 3: <br>
-    python3 test.py --datasets kiba --folds 4 --checkpoint_path ckpt-LGraphDTA/5-fold/kiba_fold3.ckpt <br>
+    python3 test.py --datasets kiba --folds 3 --checkpoint_path ckpt-LGraphDTA/5-fold/kiba_fold3.ckpt <br>
     → results saved to: results/kiba_fold3.pkl  
   - Fold 4: <br>
     python3 test.py --datasets kiba --folds 4 --checkpoint_path ckpt-LGraphDTA/5-fold/kiba_fold4.ckpt <br>

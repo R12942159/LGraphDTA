@@ -73,8 +73,12 @@ def run_ckpt_test(dataset, model, folds, checkpoint_path):
         y_true = y_true.numpy()
         y_pred = y_pred.numpy()
 
-        save_pkl({"pred": y_pred, "label": y_true, "loss": epoch_loss}, f"bootstrap/{dataset}_fold{fold}.pkl")
-        logger.info(f"Saved results to bootstrap/{dataset}_fold{fold}.pkl | MSE: {epoch_loss:.4f}")
+        if "5-fold" in checkpoint_path:
+            save_pkl({"pred": y_pred, "label": y_true, "loss": epoch_loss}, f"results/{dataset}-fold_{fold}.pkl")
+            logger.info(f"Saved results to results/{dataset}-fold_{fold}.pkl | MSE: {epoch_loss:.4f}")
+        else:
+            save_pkl({"pred": y_pred, "label": y_true, "loss": epoch_loss}, f"bootstrap/{dataset}_fold{fold}.pkl")
+            logger.info(f"Saved results to bootstrap/{dataset}_fold{fold}.pkl | MSE: {epoch_loss:.4f}")
 
 def main(datasets, folds, checkpoint_path=None):
     torch.cuda.empty_cache()
